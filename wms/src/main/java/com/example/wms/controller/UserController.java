@@ -28,7 +28,10 @@ public class UserController {
 
     @GetMapping("/list")
     public List<User> list(){
+        System.out.println("1111");
         return userService.list();
+
     }
+
 
 }
