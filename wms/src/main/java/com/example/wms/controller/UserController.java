@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.example.wms.common.QueryPageParam;
+import com.example.wms.common.Result;
 import com.example.wms.entity.User;
 import com.example.wms.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -65,22 +66,29 @@ public class UserController {
 
     //查询(模糊 匹配)
     @PostMapping("/listPage")
-    public List<User> listPageUser(@RequestBody QueryPageParam param){
-//        LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
-//        wrapper.like(User::getName,user.getName());
-        HashMap param1 = param.getParam();
-        String name = (String)param1.get("name");
-
+    public Result listPageUser(@RequestBody QueryPageParam param){
+//        if(param.getPageSize() == 0 && param.getPageNum() == 0){
+//            return Result.fail();
+//        }
+        if(param.getParam() != null){
+            //获取请求参数
+            HashMap param1 = param.getParam();
+            String name = (String)param1.get("name");
+            //获取每页显示多少条数和分页页数
+            Page<User> page = new Page();
+            page.setCurrent(param.getPageNum());
+            page.setSize(param.getPageSize());
+            //查询条件
+            LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
+            wrapper.like(User::getName,name);
+            IPage userPage = userService.page(page, wrapper);
+            return Result.suc(userPage.getTotal(),userPage.getRecords());
+        }
+        //获取每页显示多少条数和分页页数
         Page<User> page = new Page();
         page.setCurrent(param.getPageNum());
         page.setSize(param.getPageSize());
-
-        LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
-        wrapper.like(User::getName,name);
-
-        IPage userPage = userService.page(page, wrapper);
-        return userPage.getRecords();
-
+        IPage userPage = userService.page(page, null);
+        return Result.suc(userPage.getTotal(),userPage.getRecords());
     }
-
 }
